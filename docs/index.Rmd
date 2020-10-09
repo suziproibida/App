@@ -20,7 +20,7 @@ class: middle
 ]
 
 .pull-right[
-![Suzana](C:/Users/nanna/OneDrive/Documentos/Mestrado/docs/)
+![Suzana](docs/Suzana_TaylladePaula_baixa-23.jpg)
 ]
 
 ---
@@ -258,7 +258,7 @@ class: middle
 * 1º Passo: Conta *twitter*
     
 * 2º Passo: Transformar em uma conta [desenvolvedor](https://developer.twitter.com/en/apps) 
-    ![app](C:/Users/nanna/OneDrive/Documentos/Mestrado/docs/app.png)
+    ![app](docs/app.png)
     
 * 3º Passo: Criar o aplicativo
     
@@ -269,7 +269,7 @@ class: middle
 #Como obter a chave de acesso?
 ]
 * 4º Passo: Prencher o "formulário"
-  ![formulario](C:/Users/nanna/OneDrive/Documentos/Mestrado/docs/formulario.png)
+  ![formulario](docs/formulario.png)
 
 ---
 class: middle
@@ -277,7 +277,9 @@ class: middle
 .center[
 #Como obter a chave de acesso?
 ]
-* 5º Passo: O app está criado     ![app_icon](C:/Users/nanna/OneDrive/Documentos/Mestrado/docs/app_icon.png)
+* 5º Passo: O app está criado     
+
+![app_icon](docs/app_icon.png)
 
 ---
 class: middle
@@ -286,7 +288,7 @@ class: middle
 #Como obter a chave de acesso?
 ]
 * 6º Passo: A chave de acesso
-    ![chave](C:/Users/nanna/OneDrive/Documentos/Mestrado/docs/chave.png)
+    ![chave](docs/chave.png)
 ---
 class: middle
 
