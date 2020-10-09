@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Mineração de texto e análise de sentimentos</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Suzana de Lima" />
+    <link href="libs/remark-css-0.0.1/suzi.css" rel="stylesheet" />
+    <script src="libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+    <link href="libs/wordcloud2-0.0.1/wordcloud.css" rel="stylesheet" />
+    <script src="libs/wordcloud2-0.0.1/wordcloud2-all.js"></script>
+    <script src="libs/wordcloud2-0.0.1/hover.js"></script>
+    <script src="libs/wordcloud2-binding-0.2.1/wordcloud2.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Mineração de texto e análise de sentimentos
+## Um tutorial no R
+### Suzana de Lima
+### Outubro, 2020
+
+---
+
+class: middle
+
+.pull-left[
+#Formação
+
+- Bacharel em Estatística (2019)
+- Mestranda em Estatística (2020-2021)
+]
+
+.pull-right[
+![Suzana](/docs/Suzana_TaylladePaula_baixa-23.jpg)
+]
+
+---
+class: middle, inverse, center
+
+#Por que esse tema?
+--
+
+###Porque é legal
+
+![smile](https://media.tenor.com/images/ed6fdc8532d57e5a5abea1a83332d157/tenor.gif)
+
+---
+class: middle
+
+.center[
+#Por que esse tema?
+]
+
+* Grande parte da informação contida na Web está representada em formato de documento de texto;
+
+* Com a mineração de texto pode-se extrair informação relevante de uma base de dados textuais;
+
+* Análise de sentimentos surgiu a partir da necessidade de extrair informações subjetivas do texto a fim de criar conhecimento estruturado para ajudar na tomada de decisão. 
+
+---
+class: middle
+
+.center[
+#Por que esse tema?
+]
+
+* Áreas correlatas:
+
+    * Recuperação de informação 
+    
+    * Extração de informação 
+    
+    * Processamento de Linguagem Natural
+    
+    * Aprendizagem de máquina
+    
+    * Mineração de dados
+    
+---
+class: middle
+
+.center[
+#Por que esse tema?
+]
+
+.pull-left[
+ 
+* III SER: International Seminar on Statistics with R, UFF-Niterói 
+
+* Text Mining using tidy data principles
+
+    * Julia Silge
+]
+
+.pull-right[
+.center[
+![ser](https://ser2019.weebly.com/uploads/7/1/0/2/71021863/published/sem-t-tulo-1.png?1538417151)
+]]
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Uma sequêcia de caracteres em programação de comutadores é chamada de **string** ou cadeia de caracteres geralmente utilizada para representar palavras, frases ou textos: 
+
+* **Regex** ou expressão regular é uma notação para representar padrões em strings;
+
+* **encoding** no caso, transforma uma string em dados binários.
+   
+   * UTF-8, ISO-8859-1, ...
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * [:alpha:]: letras do alfabeto;
+
+  * [:punct:]: pontuação;
+  
+  * [:alnum:]: letras e números;
+  
+  * [:digit:]: dígitos;
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * \w: Letra;
+  
+  * \d: Dígito;
+  
+  * \s: Espaços em branco;
+  
+  * '.': Corresponde a qualquer coisa;
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * [abc]: a, b ou c
+  
+  * [a-z]: Mesma funcionalidade do [:alpha:] com uma diferença, procura as letras em "caixa baixa"
+  
+  * [^abc]: Corresonde a qualquer coisa exceto a, b ou c
+  
+  * [\^-]: "^" ou "-"
+  
+  * ^[abc]: Tudo que inicia com a, b ou c
+  
+  * [abc]$: Tudo que termina com a, b ou c
+  
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * "?": Aparece 1 ou 0
+  
+  * "+": Aparece mais de 1 vez
+  
+  * "*": Aparece mais de 0
+  
+  * {n,m}?: Aparece entre n e m vezes
+  
+  
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * "?=": Afirmação positiva
+  
+  * "?!": Afirmação negativa 
+  
+  * "?&lt;=": Afirmação positiva depois
+  
+  * "?&lt;!": Afirmação negativa depois
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Exemplo 1
+
+
+```r
+x &lt;- c("1 Bahia", "2 Jacuipense", "3")
+stringr::str_extract(x, "\\d?(?= [[:alpha:]]?)")
+```
+
+```
+## [1] "1" "2" NA
+```
+
+* Exemplo 2
+
+
+```r
+stringr::str_extract(x, "[[:alpha:]]+")
+```
+
+```
+## [1] "Bahia"      "Jacuipense" NA
+```
+
+
+---
+class: middle
+
+.center[
+#Estrutura
+]
+
+1. Coletando os dados
+
+2. Minerando o texto
+
+3. Análise de sentimentos
+
+---
+class: middle, center, inverse
+
+#Coletando os dados
+
+---
+class: middle
+
+.center[
+ #Coletando os dados
+]
+
+* Extraindo dados do *twitter*
+
+
+```r
+install.packages("twitteR")
+require(twitteR)
+```
+
+* Fornece acesso à API do Twitter, Jeff Gentry;
+
+* Como obter a chave de acesso?
+
+---
+class: middle
+
+.center[
+ #Como obter a chave de acesso?
+]
+
+* 1º Passo: Conta *twitter*
+    
+* 2º Passo: Transformar em uma conta [desenvolvedor](https://developer.twitter.com/en/apps) 
+    ![app](/docs/app.png)
+    
+* 3º Passo: Criar o aplicativo
+    
+---
+class: middle
+
+.center[
+#Como obter a chave de acesso?
+]
+* 4º Passo: Prencher o "formulário"
+  ![formulario](/docs/formulario.png)
+
+---
+class: middle
+
+.center[
+#Como obter a chave de acesso?
+]
+* 5º Passo: O app está criado     
+
+![app_icon](/docs/app_icon.png)
+
+---
+class: middle
+
+.center[
+#Como obter a chave de acesso?
+]
+* 6º Passo: A chave de acesso
+    ![chave](/docs/chave.png)
+---
+class: middle
+
+.center[
+ #Pacote *twitteR*
+]
+
+* **setup_twitter_oauth** - API do twitter
+
+```r
+consumer_key &lt;- "xxxxxxxxxxxxxxxxxxxxxxxxxx"
+consumer_secret &lt;- "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+access_token &lt;- "xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+access_secret &lt;- "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+twitteR::setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+  
+    
+* **searchTwitter** - Procura o *twitter*
+
+
+```r
+tweets &lt;-  twitteR::searchTwitter('@suziproibida', n = 50)
+df  &lt;-  twitteR::twListToDF(tweets)
+```
+
+---
+class: middle
+
+.center[
+ #Pacote *twitteR*
+]
+
+* **searchTwitter** - Procura o *twitter*
+    
+    * *string* 
+    
+    * Quantidade de *tweets*
+    
+    * Linguagem 
+    
+    * O periodo (Depende da API)
+    
+    * Definir o local de pesquisa
+    
+    * Limite de tempo que pesquisa por *tweets*
+
+---
+class: middle, center, inverse
+
+#Minerando o texto
+
+---
+class: middle
+
+.center[
+#Pacotes para mineração de dados
+]
+
+  * Manipulação de texto:
+  
+      * **tm**
+      * **stringr**
+      * **tidytext** 
+      * **stringi**
+  
+  * Visualização dos dados
+  
+      * **wordcloud2**
+      * **ggplot2**
+    
+
+```r
+require(tm)
+require(stringr)
+require(stringi)
+require(ggplot2)
+require(wordcloud2)
+require(tidytext)
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+
+* **stri_trans_general**:
+
+```r
+frase &lt;- c("Então; cabeça! 78 beBê BAHIA de e @")
+(frase &lt;- stringi::stri_trans_general(frase,"Latin-ASCII"))
+```
+
+```
+## [1] "Entao; cabeca! 78 beBe BAHIA de e @"
+```
+
+* **str_to_lower**: Transforma todas os caracteres em caixa baixa
+
+
+```r
+(frase &lt;- stringr::str_to_lower(frase))
+```
+
+```
+## [1] "entao; cabeca! 78 bebe bahia de e @"
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+
+* **str_replace_all**: Troca o padrão da *string* 
+
+
+```r
+(frase &lt;- str_replace_all(frase,"[[:punct:]]", ""))
+```
+
+```
+## [1] "entao cabeca 78 bebe bahia de e "
+```
+
+
+* **removeWords**: Utilizado para remover uma *string* especifica
+ 
+    * **stopwords**: palavras de "parada"
+
+
+```r
+(frase &lt;- removeWords(frase, stopwords(kind = "portuguese")))
+```
+
+```
+## [1] "entao cabeca 78 bebe bahia   "
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+* **removeNumbers**: Remove numerações
+
+
+```r
+(frase &lt;- removeNumbers(frase))
+```
+
+```
+## [1] "entao cabeca  bebe bahia   "
+```
+
+* **str_squish**: Remove os espaços em branco
+
+
+```r
+(frase &lt;- str_squish(frase))
+```
+
+```
+## [1] "entao cabeca bebe bahia"
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+
+
+* Modificando na base de dados
+
+```r
+df$text &lt;- df$text %&gt;% 
+  str_to_lower() %&gt;% 
+  str_replace_all("[[:punct:]]", "") %&gt;% 
+  removeWords(stopwords) %&gt;% 
+  removeNumbers() %&gt;% 
+  str_squish()
+```
+
+.pull-left[
+
+```
+## [1] "@suziproibida com certeza!"
+```
+
+]
+
+.pull-right[
+
+```
+## [1] "suziproibida"
+```
+
+]
+
+---
+class: middle
+.center[
+#Limpeza da base de dados
+]
+
+* **Regex**
+
+
+```r
+df$text &lt;- removeWords(df$text, regex("suziproibida", ignore_case = TRUE)) %&gt;% 
+  str_squish()
+df$text[1]
+```
+
+```
+## [1] "engracado eh bahia estrago time q torco pqp"
+```
+* Removendo outras palavras
+
+
+```r
+palavras &lt;- c("eh", "q", "ja", "vc", "rt", "ai", "cu")
+df$text &lt;- removeWords(df$text, palavras) %&gt;% 
+  str_squish()
+df$text[1]
+```
+
+```
+## [1] "engracado bahia estrago time torco pqp"
+```
+
+---
+class: middle
+.center[
+#Limpeza da base de dados
+]
+
+* Retirando as caselas em vazio
+
+
+```r
+for(i in 1:length(df$text)){
+  if(str_count(df$text[i])==0){
+    df$text[i] &lt;- NA
+  }else{
+  }  
+}
+
+df &lt;- df[is.na(df$text) == FALSE,]
+```
+
+---
+class: middle
+
+.center[
+#Visualização
+]
+
+.pull-left[
+
+```r
+tweet &lt;- df %&gt;%
+  mutate(id=row_number()) %&gt;% 
+  select(text,id) %&gt;% 
+  unnest_tokens(output = "words", input = text)
+
+
+tweet %&gt;% 
+  group_by(words) %&gt;% 
+  tally() %&gt;% 
+  filter(n&gt;=2) %&gt;% 
+  ggplot(aes(y=n, x=reorder(words, n))) +
+  geom_bar(stat="identity", width=0.5, fill= "#337AAA")+
+  coord_flip()+
+  labs(y="Frequência das palavras", x="Palavras")+
+  theme_minimal(base_size = 15)
+```
+
+]
+
+.pull-right[
+![](index_files/figure-html/unnamed-chunk-20-1.png)&lt;!-- --&gt;
+]
+
+---
+class: middle
+
+.center[
+#Visualização
+]
+
+
+```r
+tweet %&gt;% 
+  group_by(words) %&gt;% 
+  tally() %&gt;% 
+  wordcloud2(color = "#337AAA", rotateRatio = 1, minSize = 10)
+```
+
+<div id="htmlwidget-5dac5068e191fe9c3da3" style="width:504px;height:504px;" class="wordcloud2 html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5dac5068e191fe9c3da3">{"x":{"word":["aanonnyma","afrosnake","ahaaam","aiai","ajudar","amada","amg","amiga","amor","apitou","bagunca","bahea","bahia","besta","bolo","bonita","bora","boxu","buzina","caminhao","cara","casa","cd","certo","chega","claramente","claro","coisaaaa","coma","concordo","consigo","contas","conversando","cus","cuzao","danielzinho","disel","distribuindo","dura","duvida","engracado","escaldar","estrago","eusourafao","expulsao","falsificado","familia","festa","fica","fico","foto","golpista","gostei","graduacao","harmonico","hawk","httpstcodhxakmkse","httpstcortrwkimmd","httpstcozbuvjpcg","ikkkklkkkkkkkkkkkkkkkkkkkkkkkkk","kkkkk","kkkkkkkkk","kkkkkkkkkkkkk","kkkkkkkkkkkkkkkkkkkk","lance","lembro","livre","loucos","maluca","marta","marujoecb","matheusbrgs","mesmooooo","mestranda","mim","mthw","muita","mundo","n","natiiiisol","nega","odeia","pessoa","porra","possibilidade","pqp","prato","prima","principal","prova","provasextintos","pse","pseeee","raaaaapaz","realizar","responde","rodrigosr","segurar","sonho","time","tire","torco","totaldesordem","twitter","uiuiui","va","veeeeeei","vei","vey","vi","vin","visivelmente","viu","viver","vou"],"freq":[1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1,1,1,5,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1],"fontFamily":"Segoe UI","fontWeight":"bold","color":"#337AAA","minSize":10,"weightFactor":36,"backgroundColor":"white","gridSize":0,"minRotation":-0.785398163397448,"maxRotation":0.785398163397448,"shuffle":true,"rotateRatio":1,"shape":"circle","ellipticity":0.65,"figBase64":null,"hover":null},"evals":[],"jsHooks":{"render":[{"code":"function(el,x){\n                        console.log(123);\n                        if(!iii){\n                          window.location.reload();\n                          iii = False;\n\n                        }\n  }","data":null}]}}</script>
+
+
+![](index_files/figure-html/unnamed-chunk-21-1.png)&lt;!-- --&gt;
+
+---
+class: inverse, center, middle
+
+#Análise de sentimentos
+
+---
+class: middle
+
+.center[
+#Pacotes para Análise de sentimentos
+]
+
+ - **syuzhet**: pacote traduzido 
+ 
+ - **lexiconPT**: pacote feito por um brasileiro
+ 
+ 
+
+```r
+require(syuzhet)
+require(lexiconPT)
+```
+
+---
+class: middle
+
+.center[
+#LexiconPT
+]
+
+* Silas Gonzaga, 2007;
+
+* Contêm três bases de dados léxicas, OpLexicon(2.1 e 3.0) e SentiLex-PT02;
+
+* A OpLexicon 3.0 contêm 34191 linhas e 4 colunas.
+
+
+```r
+oplexicon_v3.0 %&gt;% 
+  head(5)
+```
+
+```
+##   term type polarity polarity_revision
+## 1   =[ emot       -1                 A
+## 2   =@ emot       -1                 A
+## 3   =p emot       -1                 A
+## 4   =P emot       -1                 A
+## 5   =x emot       -1                 A
+```
+
+---
+class: middle
+
+.center[
+#LexiconPT
+]
+
+
+```r
+lx_sen &lt;-tweet %&gt;%  
+  inner_join(oplexicon_v3.0, by = c("words" = "term")) %&gt;%
+  select(id, words, polarity) 
+
+lx_sen%&gt;% 
+  head(5)
+```
+
+```
+## # A tibble: 5 x 3
+##      id words       polarity
+##   &lt;int&gt; &lt;chr&gt;          &lt;int&gt;
+## 1     1 engracado          1
+## 2     2 certo              1
+## 3     3 cara              -1
+## 4     3 dura              -1
+## 5     3 falsificado        1
+```
+
+---
+class: middle
+
+.center[
+#LexiconPT
+]
+
+
+```r
+lx_sen &lt;- lx_sen %&gt;%
+  group_by(id) %&gt;%
+  summarise(soma = sum(polarity))
+
+lx_sen$sent &lt;- ifelse(lx_sen$soma==0, "neutro", 
+                      ifelse(lx_sen$soma&lt;0, "negativo", "positivo"))
+
+lx_sen %&gt;% 
+  head(5)
+```
+
+```
+## # A tibble: 5 x 3
+##      id  soma sent    
+##   &lt;int&gt; &lt;int&gt; &lt;chr&gt;   
+## 1     1     1 positivo
+## 2     2     1 positivo
+## 3     3    -1 negativo
+## 4    12     1 positivo
+## 5    14     2 positivo
+```
+
+---
+class: middle
+
+.center[
+#Syuzhet
+]
+
+* M. Jockers, 2016;
+
+* Ao todo são quatro dicionários léxicos: ‘syuzhet’, ‘nrc’, ‘afinn’ e ‘bing’;
+
+* A classificação utilizada é pelo NRC Emotion Lexicon (MOHAMMAD; TURNEY, 2010);
+
+* Nele está implementado 8 emoções e 2 sentimentos.
+
+---
+class: middle
+
+.center[
+#Syuzhet
+]
+
+
+```r
+sent &lt;-  get_nrc_sentiment(df$text,language = "portuguese")
+
+sent %&gt;% head(10)
+```
+
+```
+##    anger anticipation disgust fear joy sadness surprise trust negative positive
+## 1      0            0       0    0   0       0        0     0        0        0
+## 2      0            0       0    0   0       0        0     0        0        0
+## 3      0            0       0    0   0       0        0     0        1        0
+## 4      0            0       0    0   0       0        0     0        0        0
+## 5      0            0       0    0   0       0        0     0        0        0
+## 6      0            0       0    0   0       0        0     0        0        0
+## 7      0            0       0    0   0       0        0     0        0        0
+## 8      0            0       0    0   0       0        0     0        0        0
+## 9      0            0       0    0   0       0        0     0        0        0
+## 10     0            0       0    0   0       0        0     0        0        0
+```
+
+
+---
+class: middle
+
+.center[
+#Syuzhet
+]
+
+```r
+sent &lt;- sent %&gt;% 
+  mutate(score = positive - negative,
+         sentimento = ifelse(score == 0, "neutro",
+                             ifelse(score &gt; 0, "positivo", "negativo")),
+         id=row_number()) %&gt;% 
+  select(negative, positive, score, sentimento, id)
+
+sent %&gt;% head(5)
+```
+
+```
+##   negative positive score sentimento id
+## 1        0        0     0     neutro  1
+## 2        0        0     0     neutro  2
+## 3        1        0    -1   negativo  3
+## 4        0        0     0     neutro  4
+## 5        0        0     0     neutro  5
+```
+
+---
+class: middle
+
+.center[
+#Comparando
+]
+
+&lt;img src="index_files/figure-html/unnamed-chunk-28-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+.center[
+#Outros trabalhos
+]
+
+.pull-left[
+![todos](C:/Users/nanna/OneDrive/Documentos/Mestrado//docs/tcc.png)
+]
+
+.pull-right[
+* Syuzhet 
+   
+   * Acurácia: 40,20% 
+   
+   * Kappa: 0,1191
+
+* LexiconPT  
+
+   * Acurácia: 44,55% 
+   
+   * Kappa: 0,1677
+]
+
+---
+class: middle
+
+.center[
+#Referência
+]
+
+* [Tech Terms](https://techterms.com/)
+
+* [Curso-R|Stringr](https://www.curso-r.com/material/stringr/)
+
+* [R fot data science](https://r4ds.had.co.nz/strings.html)
+
+* [Regular expressions](https://stringr.tidyverse.org/articles/regular-expressions.html)
+
+* [Introduction to strigr](https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html)
+
+* [LexiconPt](https://cran.r-project.org/web/packages/lexiconPT/lexiconPT.pdf)
+
+* [Syuzhet](https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html)
+
+---
+class: center, inverse, middle
+
+#Obrigada
+
+![Obrigada](https://media3.giphy.com/media/l0MYtowTGAb6hZA5i/giphy.gif?cid=ecf05e47u34y27cqud0r51t02djoip3dvuv0u14395mrcpjx&amp;rid=giphy.gif)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create();
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
