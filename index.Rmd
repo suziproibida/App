@@ -1,0 +1,773 @@
+---
+title: "Mineração de texto e análise de sentimentos"
+subtitle: "Um tutorial no R"
+author: "Suzana de Lima"
+date: "Outubro, 2020"
+encoding: "UTF-8"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ['suzi']
+class: middle
+---
+class: middle
+
+.pull-left[
+#Formação
+
+- Bacharel em Estatística (2019)
+- Mestranda em Estatística (2020-2021)
+]
+
+.pull-right[
+![Suzana](/docs/Suzana_TaylladePaula_baixa-23.jpg)
+]
+
+---
+class: middle, inverse, center
+
+#Por que esse tema?
+--
+
+###Porque é legal
+
+![smile](https://media.tenor.com/images/ed6fdc8532d57e5a5abea1a83332d157/tenor.gif)
+
+---
+class: middle
+
+.center[
+#Por que esse tema?
+]
+
+* Grande parte da informação contida na Web está representada em formato de documento de texto;
+
+* Com a mineração de texto pode-se extrair informação relevante de uma base de dados textuais;
+
+* Análise de sentimentos surgiu a partir da necessidade de extrair informações subjetivas do texto a fim de criar conhecimento estruturado para ajudar na tomada de decisão. 
+
+---
+class: middle
+
+.center[
+#Por que esse tema?
+]
+
+* Áreas correlatas:
+
+    * Recuperação de informação 
+    
+    * Extração de informação 
+    
+    * Processamento de Linguagem Natural
+    
+    * Aprendizagem de máquina
+    
+    * Mineração de dados
+    
+---
+class: middle
+
+.center[
+#Por que esse tema?
+]
+
+.pull-left[
+ 
+* III SER: International Seminar on Statistics with R, UFF-Niterói 
+
+* Text Mining using tidy data principles
+
+    * Julia Silge
+]
+
+.pull-right[
+.center[
+![ser](https://ser2019.weebly.com/uploads/7/1/0/2/71021863/published/sem-t-tulo-1.png?1538417151)
+]]
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Uma sequêcia de caracteres em programação de comutadores é chamada de **string** ou cadeia de caracteres geralmente utilizada para representar palavras, frases ou textos: 
+
+* **Regex** ou expressão regular é uma notação para representar padrões em strings;
+
+* **encoding** no caso, transforma uma string em dados binários.
+   
+   * UTF-8, ISO-8859-1, ...
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * [:alpha:]: letras do alfabeto;
+
+  * [:punct:]: pontuação;
+  
+  * [:alnum:]: letras e números;
+  
+  * [:digit:]: dígitos;
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * \w: Letra;
+  
+  * \d: Dígito;
+  
+  * \s: Espaços em branco;
+  
+  * '.': Corresponde a qualquer coisa;
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * [abc]: a, b ou c
+  
+  * [a-z]: Mesma funcionalidade do [:alpha:] com uma diferença, procura as letras em "caixa baixa"
+  
+  * [^abc]: Corresonde a qualquer coisa exceto a, b ou c
+  
+  * [\^-]: "^" ou "-"
+  
+  * ^[abc]: Tudo que inicia com a, b ou c
+  
+  * [abc]$: Tudo que termina com a, b ou c
+  
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * "?": Aparece 1 ou 0
+  
+  * "+": Aparece mais de 1 vez
+  
+  * "*": Aparece mais de 0
+  
+  * {n,m}?: Aparece entre n e m vezes
+  
+  
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Alguns padrões mais utilizados
+
+  * "?=": Afirmação positiva
+  
+  * "?!": Afirmação negativa 
+  
+  * "?<=": Afirmação positiva depois
+  
+  * "?<!": Afirmação negativa depois
+
+---
+class: middle
+
+.center[
+#Conceitos
+]
+
+* Exemplo 1
+
+```{r}
+x <- c("1 Bahia", "2 Jacuipense", "3")
+stringr::str_extract(x, "\\d?(?= [[:alpha:]]?)")
+```
+
+* Exemplo 2
+
+```{r}
+stringr::str_extract(x, "[[:alpha:]]+")
+```
+
+
+---
+class: middle
+
+.center[
+#Estrutura
+]
+
+1. Coletando os dados
+
+2. Minerando o texto
+
+3. Análise de sentimentos
+
+---
+class: middle, center, inverse
+
+#Coletando os dados
+
+---
+class: middle
+
+.center[
+ #Coletando os dados
+]
+
+* Extraindo dados do *twitter*
+
+```{r eval=FALSE, include=TRUE}
+install.packages("twitteR")
+require(twitteR)
+```
+
+* Fornece acesso à API do Twitter, Jeff Gentry;
+
+* Como obter a chave de acesso?
+
+---
+class: middle
+
+.center[
+ #Como obter a chave de acesso?
+]
+
+* 1º Passo: Conta *twitter*
+    
+* 2º Passo: Transformar em uma conta [desenvolvedor](https://developer.twitter.com/en/apps) 
+    ![app](/docs/app.png)
+    
+* 3º Passo: Criar o aplicativo
+    
+---
+class: middle
+
+.center[
+#Como obter a chave de acesso?
+]
+* 4º Passo: Prencher o "formulário"
+  ![formulario](/docs/formulario.png)
+
+---
+class: middle
+
+.center[
+#Como obter a chave de acesso?
+]
+* 5º Passo: O app está criado     
+
+![app_icon](/docs/app_icon.png)
+
+---
+class: middle
+
+.center[
+#Como obter a chave de acesso?
+]
+* 6º Passo: A chave de acesso
+    ![chave](/docs/chave.png)
+---
+class: middle
+
+.center[
+ #Pacote *twitteR*
+]
+
+* **setup_twitter_oauth** - API do twitter
+```{r eval=FALSE, include=TRUE}
+consumer_key <- "xxxxxxxxxxxxxxxxxxxxxxxxxx"
+consumer_secret <- "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+access_token <- "xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+access_secret <- "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+twitteR::setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+  
+    
+* **searchTwitter** - Procura o *twitter*
+
+```{r eval=FALSE, include=TRUE}
+tweets <-  twitteR::searchTwitter('@suziproibida', n = 50)
+df  <-  twitteR::twListToDF(tweets)
+```
+
+---
+class: middle
+
+.center[
+ #Pacote *twitteR*
+]
+
+* **searchTwitter** - Procura o *twitter*
+    
+    * *string* 
+    
+    * Quantidade de *tweets*
+    
+    * Linguagem 
+    
+    * O periodo (Depende da API)
+    
+    * Definir o local de pesquisa
+    
+    * Limite de tempo que pesquisa por *tweets*
+
+---
+class: middle, center, inverse
+
+#Minerando o texto
+
+---
+class: middle
+
+.center[
+#Pacotes para mineração de dados
+]
+
+  * Manipulação de texto:
+  
+      * **tm**
+      * **stringr**
+      * **tidytext** 
+      * **stringi**
+  
+  * Visualização dos dados
+  
+      * **wordcloud2**
+      * **ggplot2**
+    
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+require(tm)
+require(stringr)
+require(stringi)
+require(ggplot2)
+require(wordcloud2)
+require(tidytext)
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+
+* **stri_trans_general**:
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+frase <- c("Então; cabeça! 78 beBê BAHIA de e @")
+(frase <- stringi::stri_trans_general(frase,"Latin-ASCII"))
+```
+
+* **str_to_lower**: Transforma todas os caracteres em caixa baixa
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+(frase <- stringr::str_to_lower(frase))
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+
+* **str_replace_all**: Troca o padrão da *string* 
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+(frase <- str_replace_all(frase,"[[:punct:]]", ""))
+```
+
+
+* **removeWords**: Utilizado para remover uma *string* especifica
+ 
+    * **stopwords**: palavras de "parada"
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+(frase <- removeWords(frase, stopwords(kind = "portuguese")))
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+* **removeNumbers**: Remove numerações
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+(frase <- removeNumbers(frase))
+```
+
+* **str_squish**: Remove os espaços em branco
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+(frase <- str_squish(frase))
+```
+
+---
+class: middle
+
+.center[
+#Limpeza da base de dados
+]
+
+```{r eval=TRUE, include=FALSE}
+require(readr)
+require(readxl)
+require(dplyr)
+df <- read_csv("~/Mestrado//docs/df.csv")%>% 
+  select(-X1)
+stopwords <- read_excel("~/Graduação/TCC/Base_de_dados/stopwords.xlsx") %>% 
+  as.matrix()
+l4 <- df$text[4]
+```
+
+* Modificando na base de dados
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+df$text <- df$text %>% 
+  str_to_lower() %>% 
+  str_replace_all("[[:punct:]]", "") %>% 
+  removeWords(stopwords) %>% 
+  removeNumbers() %>% 
+  str_squish()
+```
+
+.pull-left[
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+l4[1]
+```
+
+]
+
+.pull-right[
+```{r echo=FALSE}
+df$text[[4]]
+```
+
+]
+
+---
+class: middle
+.center[
+#Limpeza da base de dados
+]
+
+* **Regex**
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+df$text <- removeWords(df$text, regex("suziproibida", ignore_case = TRUE)) %>% 
+  str_squish()
+df$text[1]
+```
+* Removendo outras palavras
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+palavras <- c("eh", "q", "ja", "vc", "rt", "ai", "cu")
+df$text <- removeWords(df$text, palavras) %>% 
+  str_squish()
+df$text[1]
+```
+
+---
+class: middle
+.center[
+#Limpeza da base de dados
+]
+
+* Retirando as caselas em vazio
+
+```{r}
+for(i in 1:length(df$text)){
+  if(str_count(df$text[i])==0){
+    df$text[i] <- NA
+  }else{
+  }  
+}
+
+df <- df[is.na(df$text) == FALSE,]
+```
+
+---
+class: middle
+
+.center[
+#Visualização
+]
+
+.pull-left[
+```{r  plot-last, fig.show = 'hide', message=FALSE, warning=FALSE, paged.print=FALSE}
+tweet <- df %>%
+  mutate(id=row_number()) %>% 
+  select(text,id) %>% 
+  unnest_tokens(output = "words", input = text)
+
+
+tweet %>% 
+  group_by(words) %>% 
+  tally() %>% 
+  filter(n>=2) %>% 
+  ggplot(aes(y=n, x=reorder(words, n))) +
+  geom_bar(stat="identity", width=0.5, fill= "#337AAA")+
+  coord_flip()+
+  labs(y="Frequência das palavras", x="Palavras")+
+  theme_minimal(base_size = 15)
+```
+
+]
+
+.pull-right[
+```{r ref.label = 'plot-last', echo = FALSE}
+```
+]
+
+---
+class: middle
+
+.center[
+#Visualização
+]
+
+```{r plot-last1, fig.show = 'hide',message=FALSE, warning=FALSE, paged.print=FALSE}
+tweet %>% 
+  group_by(words) %>% 
+  tally() %>% 
+  wordcloud2(color = "#337AAA", rotateRatio = 1, minSize = 10)
+```
+
+
+```{r ref.label = 'plot-last', echo = FALSE}
+```
+
+---
+class: inverse, center, middle
+
+#Análise de sentimentos
+
+---
+class: middle
+
+.center[
+#Pacotes para Análise de sentimentos
+]
+
+ - **syuzhet**: pacote traduzido 
+ 
+ - **lexiconPT**: pacote feito por um brasileiro
+ 
+ 
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+require(syuzhet)
+require(lexiconPT)
+```
+
+---
+class: middle
+
+.center[
+#LexiconPT
+]
+
+* Silas Gonzaga, 2007;
+
+* Contêm três bases de dados léxicas, OpLexicon(2.1 e 3.0) e SentiLex-PT02;
+
+* A OpLexicon 3.0 contêm 34191 linhas e 4 colunas.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+oplexicon_v3.0 %>% 
+  head(5)
+```
+
+---
+class: middle
+
+.center[
+#LexiconPT
+]
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE,}
+lx_sen <-tweet %>%  
+  inner_join(oplexicon_v3.0, by = c("words" = "term")) %>%
+  select(id, words, polarity) 
+
+lx_sen%>% 
+  head(5)
+```
+
+---
+class: middle
+
+.center[
+#LexiconPT
+]
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+lx_sen <- lx_sen %>%
+  group_by(id) %>%
+  summarise(soma = sum(polarity))
+
+lx_sen$sent <- ifelse(lx_sen$soma==0, "neutro", 
+                      ifelse(lx_sen$soma<0, "negativo", "positivo"))
+
+lx_sen %>% 
+  head(5)
+```
+
+---
+class: middle
+
+.center[
+#Syuzhet
+]
+
+* M. Jockers, 2016;
+
+* Ao todo são quatro dicionários léxicos: ‘syuzhet’, ‘nrc’, ‘afinn’ e ‘bing’;
+
+* A classificação utilizada é pelo NRC Emotion Lexicon (MOHAMMAD; TURNEY, 2010);
+
+* Nele está implementado 8 emoções e 2 sentimentos.
+
+---
+class: middle
+
+.center[
+#Syuzhet
+]
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+sent <-  get_nrc_sentiment(df$text,language = "portuguese")
+
+sent %>% head(10)
+```
+
+
+---
+class: middle
+
+.center[
+#Syuzhet
+]
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+sent <- sent %>% 
+  mutate(score = positive - negative,
+         sentimento = ifelse(score == 0, "neutro",
+                             ifelse(score > 0, "positivo", "negativo")),
+         id=row_number()) %>% 
+  select(negative, positive, score, sentimento, id)
+
+sent %>% head(5)
+```
+
+---
+class: middle
+
+.center[
+#Comparando
+]
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.align="center"}
+tab <- sent %>% 
+  group_by(sentimento) %>% 
+  tally() %>% 
+  mutate(prop = round((n/sum(n))*100,4))
+
+tab.1 <- lx_sen %>% 
+  group_by(sent) %>% 
+  tally() %>% 
+  mutate(prop = round((n/sum(n))*100,4))
+
+tabela <- cbind("metodo"= c(rep("LexiconPT", 3), rep("Syuzhet",3)),
+                "prop" = c(tab.1$prop, tab$prop),
+                "sent"= c(rep(c("negativo", "neutro","positivo"),2))) %>% 
+  as_tibble() 
+tabela$prop <- round(as.numeric(tabela$prop),2)
+
+
+ggplot(tabela, aes(x="", y=prop, fill=sent))+
+  geom_bar(width = 1, stat = "identity")+
+  scale_fill_manual(values = c("positivo"="#39AA3E", "negativo"="#E62E3A", "neutro"="#F7DD42"))+
+  facet_grid(~metodo)+
+  guides(fill=guide_legend(title="Sentimento"))+
+  geom_text(aes(label = paste0(prop,"%")), position =  position_stack(vjust = 0.5))+
+  theme_void(base_size = 15)
+```
+
+---
+class: middle
+
+.center[
+#Outros trabalhos
+]
+
+.pull-left[
+![todos](C:/Users/nanna/OneDrive/Documentos/Mestrado//docs/tcc.png)
+]
+
+.pull-right[
+* Syuzhet 
+   
+   * Acurácia: 40,20% 
+   
+   * Kappa: 0,1191
+
+* LexiconPT  
+
+   * Acurácia: 44,55% 
+   
+   * Kappa: 0,1677
+]
+
+---
+class: middle
+
+.center[
+#Referência
+]
+
+* [Tech Terms](https://techterms.com/)
+
+* [Curso-R|Stringr](https://www.curso-r.com/material/stringr/)
+
+* [R fot data science](https://r4ds.had.co.nz/strings.html)
+
+* [Regular expressions](https://stringr.tidyverse.org/articles/regular-expressions.html)
+
+* [Introduction to strigr](https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html)
+
+* [LexiconPt](https://cran.r-project.org/web/packages/lexiconPT/lexiconPT.pdf)
+
+* [Syuzhet](https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html)
+
+---
+class: center, inverse, middle
+
+#Obrigada
+
+![Obrigada](https://media3.giphy.com/media/l0MYtowTGAb6hZA5i/giphy.gif?cid=ecf05e47u34y27cqud0r51t02djoip3dvuv0u14395mrcpjx&rid=giphy.gif)
